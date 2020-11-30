@@ -2,7 +2,7 @@
 
 ## post：like/contentID
 
-- body:
+- body :
 ```
 {
     "isContent":true,
