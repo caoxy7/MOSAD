@@ -1,6 +1,30 @@
-# like
+<!-- TOC -->
 
-## post：like/contentID：点赞
+- [1. like](#1-like)
+    - [1.1. post：like/contentID：点赞](#11-postlikecontentid点赞)
+    - [1.2. patch:like/contentID：取消点赞数](#12-patchlikecontentid取消点赞数)
+    - [1.3. get:like：获取当前用户点赞的content/comment的id,想要获得当前content的点赞数需要用`content/detail/id`.获取comment的点赞数用`comment/contentID`获取该content下的所有comment的信息。](#13-getlike获取当前用户点赞的contentcomment的id想要获得当前content的点赞数需要用contentdetailid获取comment的点赞数用commentcontentid获取该content下的所有comment的信息)
+- [2. content](#2-content)
+    - [2.1. delete:content/contentID](#21-deletecontentcontentid)
+    - [2.2. get：content/detail/contentID：根据id获得content的具体信息，相较根据userid获得的content的内容，这里在最后多了一个user属性集。](#22-getcontentdetailcontentid根据id获得content的具体信息相较根据userid获得的content的内容这里在最后多了一个user属性集)
+    - [2.3. get：content/public?page=1&eachPage=100](#23-getcontentpublicpage1eachpage100)
+    - [2.4. get：content/texts/userID：根据用户id得到用户所发布的全部content的信息，不包括content下的评论](#24-getcontenttextsuserid根据用户id得到用户所发布的全部content的信息不包括content下的评论)
+    - [2.5. post：content/text(发布一条新的)](#25-postcontenttext发布一条新的)
+    - [2.6. patch：content/all/contentID:根据id修改content的内容-bug：只要登录状态下都能根据id修改任何content](#26-patchcontentallcontentid根据id修改content的内容-bug只要登录状态下都能根据id修改任何content)
+    - [2.7.](#27)
+- [3. comment](#3-comment)
+    - [3.1. get:comment/contentID:获取该content下的全部评论的信息](#31-getcommentcontentid获取该content下的全部评论的信息)
+    - [3.2. Post：/comment](#32-postcomment)
+    - [3.3. delete：comment/id](#33-deletecommentid)
+- [4. Thumb](#4-thumb)
+    - [4.1. get:thumb/ThumbID](#41-getthumbthumbid)
+    - [4.2. get:thumb/url](#42-getthumburl)
+
+<!-- /TOC -->
+
+# 1. like
+
+## 1.1. post：like/contentID：点赞
 
 - body :
 ```
@@ -43,7 +67,7 @@
 
 
 
-## patch:like/contentID：取消点赞数
+## 1.2. patch:like/contentID：取消点赞数
 
 - body同post like
 
@@ -64,7 +88,7 @@
 }
 ```
 
-## get:like：获取当前用户点赞的content/comment的id,想要获得当前content的点赞数需要用`content/detail/id`.获取comment的点赞数用`comment/contentID`获取该content下的所有comment的信息。
+## 1.3. get:like：获取当前用户点赞的content/comment的id,想要获得当前content的点赞数需要用`content/detail/id`.获取comment的点赞数用`comment/contentID`获取该content下的所有comment的信息。
 
 - body：
 
@@ -89,9 +113,9 @@ data可以是空
 
 
 
-# content
+# 2. content
 
-## delete:content/contentID
+## 2.1. delete:content/contentID
 
 - body:
 wu
@@ -123,7 +147,7 @@ wu
 }
 ```
 
-## get：content/detail/contentID：根据id获得content的具体信息，相较根据userid获得的content的内容，这里在最后多了一个user属性集。
+## 2.2. get：content/detail/contentID：根据id获得content的具体信息，相较根据userid获得的content的内容，这里在最后多了一个user属性集。
 
 - body:
 
@@ -195,7 +219,7 @@ wu
 
 - res-2-3同上
 
-## get：content/public?page=1&eachPage=100
+## 2.3. get：content/public?page=1&eachPage=100
 
 这个应该不需要怎么解释，返回值列举一个
 
@@ -276,7 +300,7 @@ wu
 }
 ```
 
-## get：content/texts/userID：根据用户id得到用户所发布的全部content的信息，不包括content下的评论
+## 2.4. get：content/texts/userID：根据用户id得到用户所发布的全部content的信息，不包括content下的评论
 
 - body:
 wu
@@ -356,7 +380,7 @@ wu
 }
 ```
 
-## post：content/text(发布一条新的)
+## 2.5. post：content/text(发布一条新的)
 
 - body:
 
@@ -378,16 +402,16 @@ wu
 }
 ```
 
-## patch：content/all/contentID:根据id修改content的内容-bug：只要登录状态下都能根据id修改任何content
+## 2.6. patch：content/all/contentID:根据id修改content的内容-bug：只要登录状态下都能根据id修改任何content
 
 格式同content/text
 
-## 
+## 2.7.  
 
 
-# comment
+# 3. comment
 
-## get:comment/contentID:获取该content下的全部评论的信息
+## 3.1. get:comment/contentID:获取该content下的全部评论的信息
 
 - body
 
@@ -526,7 +550,7 @@ wu
 }
 ```
 
-## Post：/comment
+## 3.2. Post：/comment
 
 - body：
 
@@ -545,7 +569,7 @@ wu
 }
 ```
 
-## delete：comment/id
+## 3.3. delete：comment/id
 
 - 删除别人的
 ```
@@ -559,12 +583,12 @@ wu
 
 
 
-# Thumb
+# 4. Thumb
 
-## get:thumb/ThumbID
+## 4.1. get:thumb/ThumbID
 
 如果content有图片，会有thumb的id值，记录一下通过这个可以获取图片。
 
-## get:thumb/url
+## 4.2. get:thumb/url
 
 没看到url
