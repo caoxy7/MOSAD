@@ -556,3 +556,15 @@ wu
 ```
 
 经测试，不能删除别人的content/comment，但是可以更改content/.comment没有patch接口，那没事了
+
+
+
+# Thumb
+
+## get:thumb/ThumbID
+
+如果content有图片，会有thumb的id值，记录一下通过这个可以获取图片。
+
+## get:thumb/url
+
+没看到url
