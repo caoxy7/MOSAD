@@ -1,6 +1,6 @@
 # like
 
-## post：like/contentID
+## post：like/contentID：点赞
 
 - body :
 ```
@@ -43,7 +43,7 @@
 
 
 
-## patch:like/contentID
+## patch:like/contentID：取消点赞数
 
 - body同post like
 
@@ -64,7 +64,7 @@
 }
 ```
 
-## get:like
+## get:like：获取当前用户点赞的content/comment的id,想要获得当前content的点赞数需要用`content/detail/id`.获取comment的点赞数用`comment/contentID`获取该content下的所有comment的信息。
 
 - body：
 
@@ -123,7 +123,7 @@ wu
 }
 ```
 
-## get：content/detail/contentID
+## get：content/detail/contentID：根据id获得content的具体信息，相较根据userid获得的content的内容，这里在最后多了一个user属性集。
 
 - body:
 
@@ -276,7 +276,7 @@ wu
 }
 ```
 
-## get：content/texts/userID
+## get：content/texts/userID：根据用户id得到用户所发布的全部content的信息，不包括content下的评论
 
 - body:
 wu
@@ -378,8 +378,181 @@ wu
 }
 ```
 
-## patch：content/all/contentID
+## patch：content/all/contentID:根据id修改content的内容-bug：只要登录状态下都能根据id修改任何content
 
 格式同content/text
 
 ## 
+
+
+# comment
+
+## get:comment/contentID:获取该content下的全部评论的信息
+
+- body
+
+无
+
+- res-1:
+
+几个参数的解释如下：
+1. Comment
+    1. {}：直接对应于content，回复content的叫做comment
+    2. ID:该comment的id
+    3. ContentID:该comment回复的那条content的id
+    4. FatherID:回复的那条content对应的user的id（即发布这条content的用户id）
+    5. data
+    6. Content:内容
+    7. LikeNume
+2. User:
+    1. Name:这个comment的用户名
+    2. 
+3. Replies：如果没有回复则是null。replies特指？回复comment的语句，(疑问：如何回复reply？我用reply的id，使用comment语句去回复会提示`not found``)
+    1. Reply
+        1. ID：
+        2. contentID：回复的那条comment的id
+        3. fatherID：comment所在的那条conteneID
+        4. UserID
+        5. Date
+        6.Content
+        7. LikeNum
+    2. User
+        1. Name:发送这条reply的用户名
+        2. 
+        3. 
+    3. Father
+        1. Name:这里应该是后端固定给你把id改成了匿名用户，让你可以回复的时候at一下，不懂什么意思
+
+```
+{
+    "State": "success",
+    "Data": [
+        {
+            "Comment": {
+                "ID": "5fc50e64f5beb29bc3968cca",
+                "ContentID": "5fc508c0f5beb29bc3968cb9",
+                "FatherID": "5fc314a3f5beb29bc3968b65",
+                "UserID": "5fbde0e0f5beb22628d4b697",
+                "Date": 1606749796000,
+                "Content": "VTB是什么呀",
+                "LikeNum": 1
+            },
+            "User": {
+                "Name": "郑桌",
+                "Avatar": "",
+                "Gender": 0
+            },
+            "Replies": [
+                {
+                    "Reply": {
+                        "ID": "5fc51295f5beb29bc3968cd0",
+                        "ContentID": "5fc50e64f5beb29bc3968cca",
+                        "FatherID": "5fc508c0f5beb29bc3968cb9",
+                        "UserID": "5fc314a3f5beb29bc3968b65",
+                        "Date": 1606750869000,
+                        "Content": "套皮女主播罢了",
+                        "LikeNum": 0
+                    },
+                    "User": {
+                        "Name": "VTB舔狗",
+                        "Avatar": "",
+                        "Gender": 0
+                    },
+                    "Father": {
+                        "Name": "匿名用户",
+                        "Avatar": "https://pic3.zhimg.com/50/v2-e2361d82ce7465808260f87bed4a32d0_im.jpg",
+                        "Gender": 0
+                    }
+                }
+            ]
+        },
+        {
+            "Comment": {
+                "ID": "5fc50e14f5beb29bc3968cc3",
+                "ContentID": "5fc508c0f5beb29bc3968cb9",
+                "FatherID": "5fc314a3f5beb29bc3968b65",
+                "UserID": "5fc314a3f5beb29bc3968b65",
+                "Date": 1606749716000,
+                "Content": "我也来做个测试v2",
+                "LikeNum": 0
+            },
+            "User": {
+                "Name": "VTB舔狗",
+                "Avatar": "",
+                "Gender": 0
+            },
+            "Replies": null
+        },
+        {
+            "Comment": {
+                "ID": "5fc50c0af5beb29bc3968cbb",
+                "ContentID": "5fc508c0f5beb29bc3968cb9",
+                "FatherID": "5fc314a3f5beb29bc3968b65",
+                "UserID": "5fc50612f5beb29bc3968cb7",
+                "Date": 1606749194000,
+                "Content": "做一个简单的测试",
+                "LikeNum": 1
+            },
+            "User": {
+                "Name": "晗町",
+                "Avatar": "",
+                "Gender": 0
+            },
+            "Replies": [
+                {
+                    "Reply": {
+                        "ID": "5fc50db3f5beb29bc3968cbd",
+                        "ContentID": "5fc50c0af5beb29bc3968cbb",
+                        "FatherID": "5fc508c0f5beb29bc3968cb9",
+                        "UserID": "5fc314a3f5beb29bc3968b65",
+                        "Date": 1606749619000,
+                        "Content": "我也来做个测试",
+                        "LikeNum": 1
+                    },
+                    "User": {
+                        "Name": "VTB舔狗",
+                        "Avatar": "",
+                        "Gender": 0
+                    },
+                    "Father": {
+                        "Name": "匿名用户",
+                        "Avatar": "https://pic3.zhimg.com/50/v2-e2361d82ce7465808260f87bed4a32d0_im.jpg",
+                        "Gender": 0
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+## Post：/comment
+
+- body：
+
+1. contentID:你要回复的那条content/comment的id
+2. fatherID：顺着你要回复的那条content/comment的信息看，下面一条（一般是contentID，我感觉这里说grandfather也许更好？指的是要回复的那一条的上一级id）。
+ >如果是从广场去回复别人的content，一般是从public拉下来信息，public里的content有`id`和`ownID`两种，id对应的就是contentID，OwnId对应的就是fatherID。而如果是回复别人的comment信息，想要知道comment的信息那就需要从content入手，用comment/contentID来拉去content下面的comment信息。就用ID和contentID来对应这里的contentID和fatherID
+3. content
+4. isReply：回复content：false；回复comment：true，回复reply：未知
+
+```
+{
+    "contentID":"5fc50c0af5beb29bc3968cbb",
+    "fatherID":"5fc508c0f5beb29bc3968cb9",
+    "content":"测试v3",
+    "isReply":true
+}
+```
+
+## delete：comment/id
+
+- 删除别人的
+```
+{
+    "State": "not_allow",
+    "Data": ""
+}
+```
+
+经测试，不能删除别人的content/comment，但是可以更改content/.comment没有patch接口，那没事了
