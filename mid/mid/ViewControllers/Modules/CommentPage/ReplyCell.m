@@ -1,17 +1,13 @@
 //
-//  CommentCell.m
+//  ReplyCell.m
 //  mid
 //
-//  Created by itlab on 11/28/20.
+//  Created by itlab on 12/3/20.
 //
 
-#import "CommentCell.h"
+#import "ReplyCell.h"
 
-@interface CommentCell()
-
-@end
-
-@implementation CommentCell
+@implementation ReplyCell
 
 - (void)awakeFromNib {
     [super awakeFromNib];

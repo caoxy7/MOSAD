@@ -10,17 +10,12 @@
 #import "CommentTableViewController.h"
 
 @interface PostCell()
-@property (nonatomic, strong) IBOutlet UILabel *timeLable;
-@property (nonatomic, strong) IBOutlet UILabel *userNameLable;
-@property (nonatomic, strong) IBOutlet UILabel *textContentLable;
-@property (nonatomic, strong) IBOutlet UILabel *commentNumberLable;
-@property (nonatomic, strong) IBOutlet UILabel *likeNumberLable;
-@property (nonatomic, strong) IBOutlet UILabel *favNumberLable;
+
 
 @property (nonatomic, strong) UIView *insidePicView;
 @property (nonatomic, strong) IBOutlet UIScrollView *picView;
 
-@property (nonatomic) int picNum;
+
 @end
 
 
@@ -37,8 +32,8 @@
     [self initPicView];
     [self initStyle];
     
-    _liked = false;
-    _faved = false;
+    _liked = NO;
+    _faved = NO;
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -51,18 +46,25 @@
 - (void)initWithTestData
 {
     _timeLable.text = @"2020 11 12";
-    _userNameLable.text = @"Edward";
+    _userNameLabel.text = @"Edward";
     _textContentLable.text = @"Music has always played an important role in my life—and that was especially true during my presidency. In honor of my book hitting shelves tomorrow, I put together this playlist featuring some memorable songs from my administration. Hope you enjoy it.";
     
+    [_portraitButton setBackgroundImage:nil forState:UIControlStateNormal];
+    [_commentButton setBackgroundImage:nil forState:UIControlStateNormal];
+    [_likeButton setBackgroundImage:nil forState:UIControlStateNormal];
+    [_favButton setBackgroundImage:nil forState:UIControlStateNormal];
+    [_deleteButton setBackgroundImage:nil forState:UIControlStateNormal];
+    
     [_portraitButton setImage:[UIImage imageNamed:@"testPortrait.jpg"] forState:UIControlStateNormal];
-    [_commentButton setImage:[UIImage imageNamed:@"comment.png"] forState:UIControlStateNormal];
-    [_likeButton setImage:[UIImage imageNamed:@"like.png"] forState:UIControlStateNormal];
-    [_favButton setImage:[UIImage imageNamed:@"fav.png"] forState:UIControlStateNormal];
+    [_commentButton setImage:[UIImage imageNamed:@"comments.png"] forState:UIControlStateNormal];
+    [_likeButton setImage:[UIImage imageNamed:@"like-color.png"] forState:UIControlStateNormal];
+    [_favButton setImage:[UIImage imageNamed:@"bookmark-color.png"] forState:UIControlStateNormal];
+    [_deleteButton setImage:[UIImage imageNamed:@"delete.png"] forState:UIControlStateNormal];
     
     
     [_likeNumberLable setText:@"10"];
     [_commentNumberLable setText:@"2"];
-    [_favNumberLable setText:@"4"];
+    [_favNumberLable setText:@""];
 }
 
 
@@ -75,57 +77,6 @@
     _portraitButton.layer.masksToBounds = YES;
 }
 
-# pragma mark 点击 like button
-- (IBAction)pressLikeButton:(id)sender
-{
-    if(_liked)
-    {
-        [self cancelLike];
-    }
-    else
-    {
-        [self like];
-    }
-}
-
-- (void)like
-{
-    [_likeButton setImage:[UIImage imageNamed:@"like-filled.png"] forState:UIControlStateNormal];
-    _liked = YES;
-}
-
-- (void)cancelLike
-{
-    [_likeButton setImage:[UIImage imageNamed:@"like.png"] forState:UIControlStateNormal];
-    _liked = NO;
-}
-
-# pragma mark 点击 fav button
-- (IBAction)pressFavButton:(id)sender
-{
-    if(_faved)
-    {
-        [self cancelFav];
-    }
-    else
-    {
-        [self fav];
-    }
-}
-
-- (void)fav
-{
-    [_favButton setImage:[UIImage imageNamed:@"fav-filled.png"] forState:UIControlStateNormal];
-    _faved = YES;
-    
-}
-
-- (void)cancelFav
-{
-    [_favButton setImage:[UIImage imageNamed:@"fav.png"] forState:UIControlStateNormal];
-    _faved = NO;
-    
-}
 
 //# pragma mark 头像
 //- (IBAction)pressPortrait:(id)sender
