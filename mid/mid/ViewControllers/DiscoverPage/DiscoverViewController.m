@@ -139,12 +139,12 @@
     long i = indexPath.row;
     ContentItem *contentItem = [_items[i] contentItem];
     MiniUserItem *userItem = [_items[i] userItem];
-//    if([contentItem.type isEqualToString:@"Text"])
-//    {
-//        NSLog(@"not album");
-//        [cell dontShowPicView];
-//    }
-    [cell dontShowPicView];
+    if([contentItem.type isEqualToString:@"Text"])
+    {
+        NSLog(@"not album");
+        [cell dontShowPicView];
+    }
+   // [cell dontShowPicView];
     cell.userNameLabel.text = userItem.userName;
     cell.portraitButton.imageView.image = userItem.avatar;
     [self setLabel:cell.textContentLable
