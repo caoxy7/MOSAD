@@ -22,7 +22,6 @@
 @property (strong, nonatomic) UISearchBar *searchBar;
 @property (strong, nonatomic) UIView *categoryView;
 @property (strong, nonatomic) NSArray *categories;
-@property (nonatomic) NSInteger atPage;
 @property (nonatomic) NSMutableArray *items;
 @end
 
@@ -54,11 +53,10 @@
      * 中间是搜索框
      * 左侧按钮是头像，点击进入个人页面
      */
-    
     // 延迟加载搜索框, 放在 navBar 的中间
     [self.navigationItem setTitleView:[self searchBar]];
     // 左侧按钮
-    [self setPortraitButtonWithImage:[UIImage imageNamed:@"testPortrait.jpg"]];
+    [self setPortraitButtonWithImage:[UserInfo sharedUser].avatar];
     // 右侧按钮
     UIBarButtonItem *rightButton =
         [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
@@ -75,7 +73,7 @@
     
     // 一些样式
     [self.tableView setBounces:NO];
-    
+
     [self loadTextData];
     
 }
@@ -132,14 +130,39 @@
     [cell.commentButton addTarget:self action:@selector(showCommentPage:) forControlEvents:UIControlEventTouchUpInside];
     
     // for test use
-    [cell addPic:[UIImage imageNamed:@"testPic.jpg"]];
-    [cell addPic:[UIImage imageNamed:@"test100.jpg"]];
-    [cell addPic:[UIImage imageNamed:@"test101.jpg"]];
-    [cell addPic:[UIImage imageNamed:@"test102.jpg"]];
+//    [cell addPic:[UIImage imageNamed:@"testPic.jpg"]];
+//    [cell addPic:[UIImage imageNamed:@"test100.jpg"]];
+//    [cell addPic:[UIImage imageNamed:@"test101.jpg"]];
+//    [cell addPic:[UIImage imageNamed:@"test102.jpg"]];
     
     // 设置cell值
     long i = indexPath.row;
     ContentItem *contentItem = _items[i];
+    
+    if([contentItem.type isEqualToString:@"Text"])
+    {
+        [cell dontShowPicView];
+    }
+    else
+    {
+        NSArray *images = contentItem.album[@"Images"];
+        if((NSNull *)images != [NSNull null])
+        {
+            for(int i = 0; i < [images count]; i++)
+            {
+                NSString *thumbName = images[i][@"Thumb"];
+                NSLog(@"thumb name: %@", thumbName);
+                NSString *imageURL = [NSString stringWithFormat:@"http://172.18.178.56/api/thumb/%@", thumbName];
+                UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:imageURL]]];
+                [cell addPic:image];
+            }
+            if([images count] == 0)
+            {
+                [cell addPic:[UIImage imageNamed:@"noImage.jpg"]];
+            }
+        }
+    }
+    
     cell.userNameLabel.text = [UserInfo sharedUser].name;
     cell.portraitButton.imageView.image = [UserInfo sharedUser].avatar;
     [self setLabel:cell.textContentLable
@@ -201,6 +224,7 @@
             UITapGestureRecognizer *gesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapSec:)];
             [t setUserInteractionEnabled:YES];
             [t addGestureRecognizer:gesture];
+            [t setFont:[UIFont boldSystemFontOfSize:17]];
             [t setTextColor:i == 0 ? [UIColor blackColor] : [UIColor lightGrayColor]];
             [_categoryView addSubview:t];
         }
@@ -208,39 +232,29 @@
     return _categoryView;
 }
 
+# pragma mark 切换分类
 - (void)tapSec:(UITapGestureRecognizer *)sender
 {
     _atPage = sender.view.tag;
-    
     // 样式改变
     for(int i = 0; i < [_categories count]; i++)
     {
         if(i == _atPage)
-            [_categories[i] setTextColor:[UIColor blackColor]];
+            [_categories[i] setTextColor:[UIColor darkGrayColor]];
         else
             [_categories[i] setTextColor:[UIColor lightGrayColor]];
     }
     
-    // 定义功能
-    switch (_atPage) {
-        case 0:
-            NSLog(@"tag: 0");
-            [self loadTextData];
-            break;
-        case 1:
-            NSLog(@"tag: 1");
-            break;
-        case 2:
-            NSLog(@"tag: 2");
-            break;
-        default:
-            break;
+    if(_atPage == 2)
+    {
+        [self AlertWithTitle:@"收藏功能" message:@"敬请期待"];
     }
     
+    // 定义功能
+    [self loadData];
 }
 
 #pragma mark 加载 text 类内容
-
 - (void)loadTextData
 {
     NSString *URL = @"http://172.18.178.56/api/content/texts/self";
@@ -250,24 +264,22 @@
     
     [manager GET:URL parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSDictionary *response = (NSDictionary *)responseObject;
-        NSLog(@"%@",response);
         if([response[@"State"] isEqualToString:@"success"])
         {
             self.items = [NSMutableArray new];
             NSArray *data = response[@"Data"];
-            NSInteger n = [data count];
-            NSLog(@"Item Number: %ld",n);
-            for(int i = 0; i < n; i++)
+            if((NSNull *)data != [NSNull null])
             {
-                ContentItem *newItem = [[ContentItem alloc]initWithDict:data[i]];
-                NSLog(@"this Item: %@", newItem);
-                [self.items addObject:newItem];
+                NSInteger n = [data count];
+                NSLog(@"Item Number: %ld",n);
+                for(int i = 0; i < n; i++)
+                {
+                    ContentItem *newItem = [[ContentItem alloc]initWithDict:data[i]];
+                    NSLog(@"this Item: %@", newItem);
+                    [self.items addObject:newItem];
+                }
             }
-            for(int i = 0; i < n; i++)
-                NSLog(@"item[%d] = %@",i,self.items[i]);
         }
-        
-        
         [self.tableView reloadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"Failed to fetch public contents somehow");
@@ -276,8 +288,43 @@
 
 
 #pragma mark 加载 album 类内容
+- (void)loadAlbumData
+{
+    NSString *URL = @"http://172.18.178.56/api/content/album/self";
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    
+    [manager GET:URL parameters:nil headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+            NSDictionary *response = (NSDictionary *)responseObject;
+            if([response[@"State"] isEqualToString:@"success"])
+            {
+                self.items = [NSMutableArray new];
+                NSArray *data = response[@"Data"];
+                if((NSNull *)data != [NSNull null])
+                {
+                    NSInteger n = [data count];
+                    for(int i = 0; i < n; i++)
+                    {
+                        ContentItem *newItem = [[ContentItem alloc]initWithDict:data[i]];
+                        NSLog(@"this Item: %@", newItem);
+                        [self.items addObject:newItem];
+                    }
+                }
+            }
+            [self.tableView reloadData];
+        } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+            NSLog(@"Failed to fetch public contents somehow");
+        }];
+    
+}
+
 
 #pragma mark 加载 收藏 内容
+- (void)loadFavData
+{
+    
+}
 
 #pragma mark 搜索栏
 // 延迟加载搜索栏
@@ -328,7 +375,7 @@
    NSDate *date=[NSDate dateWithTimeIntervalSince1970:(NSTimeInterval)time];
    // 时间格式
    NSDateFormatter *dataformatter = [[NSDateFormatter alloc] init];
-   dataformatter.dateFormat = @"MM-dd HH:mm a";
+   dataformatter.dateFormat = @"MM-dd HH:mm";
    // 时间转换字符串
    return [dataformatter stringFromDate:date];
 }
@@ -384,16 +431,6 @@
     [label setAttributedText:str];
 }
 
-#pragma mark 喜欢button
-- (void)favPost:(UIButton *)btn
-{
-    UIView *contentView = [btn superview];
-    PostCell *cell = (PostCell *)[contentView superview];
-    NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
-    
-    // 已经得到indexPath
-    NSLog(@"press fav button at row %ld", indexPath.row);
-}
 
 #pragma mark 头像button
 - (void)toUserPage:(UIButton *)btn
@@ -410,23 +447,71 @@
 #pragma mark 点赞button
 - (void)likePost:(UIButton *)btn
 {
+    //得到indexPath
     UIView *contentView = [btn superview];
     PostCell *cell = (PostCell *)[contentView superview];
     NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
-    
-    // 已经得到indexPath
+
     NSLog(@"press like button at row %ld", indexPath.row);
+    NSInteger i = indexPath.row;
+    NSString *contentID = [_items[i] contentID];
+    NSString *URL = [NSString stringWithFormat:@"%@%@",@"http://172.18.178.56/api/like/",contentID];
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    
+    NSDictionary *body = @{
+        @"isContent" : @YES,
+        @"isComment" : @NO,
+        @"isReply" : @NO
+    };
+    
+    NSLog(@"Id : %@", contentID);
+    
+
+    NSLog(@"尝试点赞");
+    [manager POST:URL parameters:body headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"%@", responseObject);
+        if([responseObject[@"State"] isEqualToString:@"exist"])
+        {
+            NSLog(@"已经点赞，应取消点赞");
+            [manager PATCH:URL parameters:body headers:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                NSLog(@"%@", responseObject);
+                [self loadData];
+            } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                NSLog(@"failed to patch somehow");
+            }];
+        }
+        else
+            [self loadData];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"failed to post somehow");
+    }];
 }
 
 #pragma mark 删除button
 - (void)deletePost:(UIButton *)btn
 {
+    // 得到indexPath
     UIView *contentView = [btn superview];
     PostCell *cell = (PostCell *)[contentView superview];
     NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
     
-    // 已经得到indexPath
     NSLog(@"press delete button at row %ld", indexPath.row);
+    NSInteger i = indexPath.row;
+    NSString *contentID = [_items[i] contentID];
+    NSString *URL = [NSString stringWithFormat:@"%@%@",@"http://172.18.178.56/api/content/",contentID];
+    AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+    manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    manager.responseSerializer = [AFJSONResponseSerializer serializer];
+    
+    [manager DELETE:URL parameters:nil headers:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+        NSLog(@"%@", responseObject);
+        [self loadData];
+    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+        NSLog(@"failed somehow");
+    }];
+    
 }
 
 #pragma mark 评论区button
@@ -438,7 +523,6 @@
     
     // 已经得到indexPath
     NSLog(@"press comment button at row %ld", indexPath.row);
-//    [self.navigationController pushViewController:[CommentTableViewController new] animated:NO];
     NSString *contentID = [_items[indexPath.row] contentID];
     NSString *ownerID = [_items[indexPath.row]ownerID];
     [self presentViewController:[[CommentTableViewController alloc]initWithContentID:contentID andOwnerID:ownerID] animated:YES completion:nil];
@@ -454,13 +538,14 @@
     button.layer.cornerRadius = r/2;
     button.imageView.contentMode = UIViewContentModeScaleAspectFill; // 头像截取而不缩放
     button.layer.masksToBounds = YES;                               // 头像将只显示在圆圈内
+    button.clipsToBounds = YES;
     
     // 以下两句约束了button的控件大小
-    [button.widthAnchor constraintEqualToConstant:35].active = YES;
-    [button.heightAnchor constraintEqualToConstant:35].active = YES;
+    [button.widthAnchor constraintEqualToConstant:r].active = YES;
+    [button.heightAnchor constraintEqualToConstant:r].active = YES;
     
-    button.layer.borderWidth = 1.2;
-    button.layer.borderColor = [UIColor lightGrayColor].CGColor;
+    button.layer.borderWidth = 0;
+//    button.layer.borderColor = [UIColor lightGrayColor].CGColor;
     
     [button addTarget:self action:@selector(toMyPage) forControlEvents:UIControlEventTouchUpInside];
     [self.navigationItem setLeftBarButtonItem:[[UIBarButtonItem alloc]initWithCustomView:button]];
@@ -474,5 +559,34 @@
     [self.navigationController pushViewController:[WritingPostViewController new] animated:NO];
 }
 
+#pragma mark
+-(void)loadData;
+{
+    switch (_atPage) {
+        case 0:
+            [self loadTextData];
+            break;
+        case 1:
+            [self loadAlbumData];
+            break;
+        case 2:
+            NSLog(@"tag: 2");
+            break;
+        default:
+            break;
+    }
+}
 
+# pragma mark 提示
+- (void)AlertWithTitle:(NSString *)title
+               message:(NSString *)msg
+{
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:msg
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+    
+    // 显示对话框
+    [self presentViewController:alert animated:true completion:nil];
+}
 @end

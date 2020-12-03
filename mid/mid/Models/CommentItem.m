@@ -15,7 +15,11 @@
     self.contentID = dict[@"ContentID"];
     self.fatherID = dict[@"FatherID"];
     self.userID = dict[@"UserID"];
+<<<<<<< HEAD
     self.publishDate = [dict[@"Date"] longValue]/1000;
+=======
+    self.publishDate = [dict[@"Date"] longValue] / 1000;
+>>>>>>> 76d5ad1d6625334b12b8b990b89a1a0081eaa43c
     self.commentContent = dict[@"Content"];
     self.likeNum = [dict[@"LikeNum"] intValue];
     

@@ -19,6 +19,7 @@
 @interface DiscoverViewController ()
 @property (nonatomic) NSMutableArray *items;
 @property (nonatomic, strong) UILabel *header;
+@property (nonatomic, strong) UISegmentedControl *segmentBar;
 @end
 
 @implementation DiscoverViewController
@@ -50,13 +51,13 @@
     
     // 顶部 SegmentedControl
     NSArray *segmentedData = @[@"按时间线",@"按热度"];
-    UISegmentedControl *segmentBar = [[UISegmentedControl alloc] initWithItems:segmentedData];
-    [segmentBar setWidth:120 forSegmentAtIndex:0];
-    [segmentBar setWidth:120 forSegmentAtIndex:1];
-    [segmentBar addTarget:self action:@selector(choose:) forControlEvents:UIControlEventValueChanged];
-    self.navigationItem.titleView = segmentBar;
+    _segmentBar = [[UISegmentedControl alloc] initWithItems:segmentedData];
+    [_segmentBar setWidth:120 forSegmentAtIndex:0];
+    [_segmentBar setWidth:120 forSegmentAtIndex:1];
+    [_segmentBar addTarget:self action:@selector(choose:) forControlEvents:UIControlEventValueChanged];
+    self.navigationItem.titleView = _segmentBar;
     
-    [segmentBar setSelectedSegmentIndex:0];
+    [_segmentBar setSelectedSegmentIndex:0];
     
     // 刷新 button
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(loadData)];
@@ -65,11 +66,13 @@
     [self.tableView setBounces:NO];
     
     [self loadData];
+    
+    
 }
 
 -(void)viewWillAppear:(BOOL)animated
 {
-    [self loadData];
+//    [self loadData];
 }
 
 #pragma mark 热门or时间顺序
@@ -78,10 +81,19 @@
     NSInteger Index = seg.selectedSegmentIndex;
     switch (Index) {
         case 0:
-            // 设置数据源
+            [_header setText:@"  最新内容"];
+            // 重新从后台拉取
+            [self loadData];
             break;
         case 1:
-            // 设置数据源
+            [_header setText:@"  最热内容"];
+            // 排序
+            [_items sortUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
+                FullDataItem *item1 = (FullDataItem *)obj1;
+                FullDataItem *item2 = (FullDataItem *)obj2;
+                return item1.contentItem.commentNum + item1.contentItem.likeNum < item2.contentItem.commentNum + item2.contentItem.likeNum;
+            }];
+            [self.tableView reloadData];
             break;
     }
 }
@@ -121,7 +133,6 @@
         BigImageViewController *bivc = [[BigImageViewController alloc] init];
         bivc.view.backgroundColor = [UIColor blackColor];
         bivc.image = img;
-        //[self.navigationController pushViewController:bivc animated:YES];
         [self presentViewController:bivc animated:YES completion:nil];
     };
 
@@ -133,18 +144,46 @@
     [cell.deleteButton setHidden:YES];
     
     // for test use
-    [cell addPic:[UIImage imageNamed:@"testPic.jpg"]];
+//    [cell addPic:[UIImage imageNamed:@"testPic.jpg"]];
     
     // 设置 cell 的值
     long i = indexPath.row;
     ContentItem *contentItem = [_items[i] contentItem];
     MiniUserItem *userItem = [_items[i] userItem];
+<<<<<<< HEAD
     if([contentItem.type isEqualToString:@"Text"])
     {
         NSLog(@"not album");
         [cell dontShowPicView];
     }
    // [cell dontShowPicView];
+=======
+    
+    if([contentItem.type isEqualToString:@"Text"])
+    {
+        [cell dontShowPicView];
+    }
+    else
+    {
+        NSArray *images = contentItem.album[@"Images"];
+        if((NSNull *)images != [NSNull null])
+        {
+            for(int i = 0; i < [images count]; i++)
+            {
+                NSString *thumbName = images[i][@"Thumb"];
+                NSLog(@"thumb name: %@", thumbName);
+                NSString *imageURL = [NSString stringWithFormat:@"http://172.18.178.56/api/thumb/%@", thumbName];
+                UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:imageURL]]];
+                [cell addPic:image];
+            }
+            if([images count] == 0)
+            {
+                [cell addPic:[UIImage imageNamed:@"noImage.jpg"]];
+            }
+        }
+    }
+    
+>>>>>>> 76d5ad1d6625334b12b8b990b89a1a0081eaa43c
     cell.userNameLabel.text = userItem.userName;
     cell.portraitButton.imageView.image = userItem.avatar;
     [self setLabel:cell.textContentLable
@@ -165,7 +204,7 @@
    NSDate *date=[NSDate dateWithTimeIntervalSince1970:(NSTimeInterval)time];
    // 时间格式
    NSDateFormatter *dataformatter = [[NSDateFormatter alloc] init];
-   dataformatter.dateFormat = @"MM-dd HH:mm a";
+   dataformatter.dateFormat = @"MM-dd HH:mm";
    // 时间转换字符串
    return [dataformatter stringFromDate:date];
 }
@@ -224,13 +263,13 @@
 #pragma mark 喜欢button
 - (void)favPost:(UIButton *)btn
 {
+    // 得到indexPath
     UIView *contentView = [btn superview];
     PostCell *cell = (PostCell *)[contentView superview];
     NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
-    
-    // 已经得到indexPath
     NSLog(@"press fav button at row %ld", indexPath.row);
 
+    [self AlertWithTitle:@"收藏" message:@"敬请期待"];
 }
 
 #pragma mark 头像button
@@ -253,7 +292,6 @@
     PostCell *cell = (PostCell *)[contentView superview];
     NSIndexPath *indexPath = [self.tableView indexPathForCell:cell];
     
-    
     NSInteger i = indexPath.row;
     NSString *contentID = [[_items[i] contentItem]contentID];
     NSString *URL = [NSString stringWithFormat:@"%@%@",@"http://172.18.178.56/api/like/",contentID];
@@ -269,7 +307,6 @@
     
     NSLog(@"Id : %@", contentID);
     
-
     NSLog(@"尝试点赞");
     [manager POST:URL parameters:body headers:nil progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"%@", responseObject);
@@ -283,7 +320,8 @@
                 NSLog(@"failed to patch somehow");
             }];
         }
-        [self loadData];
+        else
+            [self loadData];
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         NSLog(@"failed to post somehow");
     }];
@@ -309,7 +347,7 @@
 # pragma mark 从后台拉取数据
 - (void)loadData
 {
-    NSString *URL = @"http://172.18.178.56/api/content/public?page=1&eachPage=100";
+    NSString *URL = @"http://172.18.178.56/api/content/public?page=1&eachPage=30";
     
     AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
@@ -326,9 +364,18 @@
             for(int i = 0; i < n; i++)
             {
                 FullDataItem *newItem = [[FullDataItem alloc]initWithDict:data[i]];
+                NSLog(@"---->%@",data[i]);
                 if([self.items count] > i)
                     self.items[i] = newItem;
                 else [self.items addObject:newItem];
+            }
+            if([self.segmentBar selectedSegmentIndex] == 1)
+            {
+                [self.items sortUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
+                    FullDataItem *item1 = (FullDataItem *)obj1;
+                    FullDataItem *item2 = (FullDataItem *)obj2;
+                    return item1.contentItem.commentNum + item1.contentItem.likeNum < item2.contentItem.commentNum + item2.contentItem.likeNum;
+                }];
             }
         }
         [self.tableView reloadData];
@@ -336,6 +383,19 @@
         NSLog(@"Failed to fetch public contents somehow");
     }];
     
+}
+
+# pragma mark 提示
+- (void)AlertWithTitle:(NSString *)title
+               message:(NSString *)msg
+{
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title
+                                                                   message:msg
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil]];
+    
+    // 显示对话框
+    [self presentViewController:alert animated:true completion:nil];
 }
 
 @end
